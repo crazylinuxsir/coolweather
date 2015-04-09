@@ -60,7 +60,7 @@ public class CoolWeatherDB {
 
     }
 
-    //从数据库读取全国所有的省份信息
+    //从SQLite数据库读取全国所有的省份信息
     public List<Province> loadProvince(){
         List<Province> list = new ArrayList<Province>();
         Cursor cursor = db.query("Province",null,null,null,null,null,null);
@@ -90,7 +90,7 @@ public class CoolWeatherDB {
 
     }
 
-    //数据库读取某省下所有的城市信息
+    //从SQLite数据库读取某省下所有的城市信息
     public List<City> loadCities(int provinceId){//取决于关联的省份
         List<City> list = new ArrayList<City>();
         Cursor cursor = db.query("City",null,"province_id = ?",new String[]{String.valueOf(provinceId)},null,null,null);
@@ -116,7 +116,7 @@ public class CoolWeatherDB {
         if (county != null){
             ContentValues values = new ContentValues();
             values.put("county_name",county.getCountyName());
-            values.put("county_cade",county.getCountyName());
+            values.put("county_code",county.getCountyName());
             values.put("city_id",county.getCityId());
             db.insert("County",null,values);
 
@@ -124,7 +124,7 @@ public class CoolWeatherDB {
 
     }
 
-    //从数据库读取某城市下所有的县信息
+    //从SQLite数据库读取某城市下所有的县信息
     public List<County> loadCounties(int cityId){//取决于关联的城市
         List<County> list = new ArrayList<County>();
         Cursor cursor = db.query("County",null,"city_id = ?",new String[]{String.valueOf(cityId)},null,null,null);

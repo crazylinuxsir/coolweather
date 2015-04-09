@@ -1,5 +1,7 @@
 package com.example.fedora.coolweather.model;
 
+
+//作为桥梁临时存储数据
 /**
  * Created by Fedora on 2015/4/5.
  */
