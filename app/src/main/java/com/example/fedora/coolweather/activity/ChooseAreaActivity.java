@@ -2,8 +2,12 @@ package com.example.fedora.coolweather.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -21,6 +25,7 @@ import com.example.fedora.coolweather.util.HttpCallbackListener;
 import com.example.fedora.coolweather.util.HttpUtil;
 import com.example.fedora.coolweather.util.Utility;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,14 +69,30 @@ public class ChooseAreaActivity extends Activity {
     //当前选中的级别
     private int currentLevel;
 
+    //是否从WeatherActivity中跳转过来
+    private boolean isFromWeatherActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        isFromWeatherActivity = getIntent().getBooleanExtra("from_weather_activity",false);
+
+        //如果之前已经用过软件 选择过城市了 打开直接显示
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if(prefs.getBoolean("city_selected",false) && !isFromWeatherActivity ){
+            Intent intent = new Intent(this,WeatherActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+        /******************************************************************************/
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.choose_area);
         listView = (ListView) findViewById(R.id.list_view);
         titleText =(TextView) findViewById(R.id.title_text);
-        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,dataList);
+        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,dataList); //绑定
         listView.setAdapter(adapter);
         coolWeatherDB = CoolWeatherDB.getInstance(this);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -83,6 +104,12 @@ public class ChooseAreaActivity extends Activity {
                 }else if (currentLevel == LEVEL_CITY){
                     selectedCity = cityList.get(position);
                     queryCounties();
+                }else if(currentLevel == LEVEL_COUNTY){
+                    String countyCode = countyList.get(position).getCountyCode();
+                    Intent intent = new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+                    intent.putExtra("county_code",countyCode);
+                    startActivity(intent);
+                    finish();
                 }
             }
         });
@@ -98,7 +125,7 @@ public class ChooseAreaActivity extends Activity {
             for (Province province : provinceList){
                 dataList.add(province.getProvinceName());
             }
-            adapter.notifyDataSetChanged();  //动态更新listview
+            adapter.notifyDataSetChanged();      //动态更新listView
             listView.setSelection(0);  //回到顶部
             titleText.setText("中国");
             currentLevel = LEVEL_PROVINCE;
@@ -138,6 +165,7 @@ public class ChooseAreaActivity extends Activity {
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
             titleText.setText(selectedCity.getCityName());
+            currentLevel = LEVEL_COUNTY;
         }else {
             queryFromServer(selectedCity.getCityCode(),"county");
         }
@@ -223,6 +251,10 @@ public class ChooseAreaActivity extends Activity {
         }else if(currentLevel == LEVEL_CITY){
             queryProvince();
         }else {
+            if(isFromWeatherActivity){
+                Intent intent = new Intent(this,WeatherActivity.class);
+                startActivity(intent);
+            }
             finish();
         }
     }
